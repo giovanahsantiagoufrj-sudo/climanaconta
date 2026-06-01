@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0F3D2E">
+<title>Clima na Conta — Descubra seu perfil de risco climático | gFIS</title>
+<style>
+  :root{
+    --verde-esc:#0F3D2E; --verde:#1D9E75; --verde-med:#5DCAA5; --verde-cl:#9FE1CB;
+    --verde-past:#E1F5EE; --coral:#D85A30; --coral-past:#FAECE7; --azul:#185FA5;
+    --azul-past:#E6F1FB; --branco:#FFFFFF; --cinza:#5F5E5A; --cinza-cl:#888780;
+    --amber:#BA7517; --amber-past:#FAEEDA;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--verde-esc); color:var(--branco);
+    display:flex; align-items:center; justify-content:center; min-height:100vh; padding:16px;
+  }
+  .app{
+    width:100%; max-width:520px; background:var(--verde-esc);
+    border-radius:20px; overflow:hidden; position:relative; min-height:560px;
+    display:flex; flex-direction:column;
+  }
+  .topbar{
+    display:flex; align-items:center; gap:10px; padding:18px 22px 14px;
+    border-bottom:1px solid rgba(255,255,255,.12);
+  }
+  .selo{
+    width:38px; height:38px; border-radius:50%; border:2px solid var(--verde-med);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    font-weight:700; color:var(--verde-med); font-size:14px;
+  }
+  .brand b{ display:block; font-size:14px; }
+  .brand span{ display:block; font-size:10.5px; color:var(--verde-cl); }
+  .conn{ margin-left:auto; display:flex; align-items:center; gap:6px; font-size:10.5px; color:var(--verde-cl); }
+  .dot{ width:8px; height:8px; border-radius:50%; background:var(--cinza-cl); flex-shrink:0; }
+  .dot.on{ background:var(--verde-med); }
+  .dot.off{ background:var(--coral); }
+  .progress-wrap{ height:4px; background:rgba(255,255,255,.12); }
+  .progress{ height:100%; width:0%; background:var(--verde-med); transition:width .35s ease; }
+  .screen{ padding:26px 22px 22px; flex:1; display:flex; flex-direction:column; }
+  .hidden{ display:none !important; }
+
+  h1{ font-size:25px; line-height:1.15; margin-bottom:10px; }
+  h1 .accent{ color:var(--verde-med); }
+  .lead{ font-size:14px; color:var(--verde-cl); line-height:1.55; margin-bottom:22px; }
+  .meta{ font-size:12px; color:var(--verde-cl); line-height:1.5; }
+
+  .btn{
+    display:block; width:100%; border:none; border-radius:12px; cursor:pointer;
+    font-size:16px; font-weight:600; padding:15px; transition:transform .08s, opacity .2s;
+    font-family:inherit;
+  }
+  .btn:active{ transform:scale(.985); }
+  .btn-primary{ background:var(--verde-med); color:var(--verde-esc); }
+  .btn-ghost{ background:transparent; color:var(--verde-cl); border:1px solid rgba(255,255,255,.22); }
+  .btn-row{ display:flex; gap:10px; margin-top:auto; padding-top:14px; }
+  .btn-row .btn{ margin:0; }
+
+  .qcount{ font-size:12px; color:var(--verde-med); font-weight:600; letter-spacing:.04em; text-transform:uppercase; margin-bottom:10px; }
+  .qtext{ font-size:19px; line-height:1.3; margin-bottom:20px; }
+  .opts{ display:flex; flex-direction:column; gap:10px; }
+  .opt{
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);
+    border-radius:12px; padding:14px 16px; cursor:pointer; font-size:15px;
+    transition:background .15s, border-color .15s, transform .08s; color:var(--branco);
+    text-align:left; font-family:inherit; line-height:1.35;
+  }
+  .opt:hover{ background:rgba(255,255,255,.1); }
+  .opt:active{ transform:scale(.99); }
+  .opt.sel{ background:var(--verde-med); border-color:var(--verde-med); color:var(--verde-esc); font-weight:600; }
+  .qhint{ font-size:11.5px; color:var(--cinza-cl); margin-top:16px; line-height:1.5; font-style:italic; }
+
+  .result-badge{ display:inline-block; padding:6px 14px; border-radius:999px; font-size:13px; font-weight:700; margin-bottom:14px; }
+  .result-title{ font-size:30px; line-height:1.1; margin-bottom:8px; }
+  .result-score{ font-size:13px; color:var(--verde-cl); margin-bottom:18px; }
+  .result-msg{ font-size:15px; line-height:1.6; color:#E1F5EE; margin-bottom:20px; }
+  .result-fact{ background:rgba(255,255,255,.06); border-left:3px solid var(--verde-med); border-radius:0 10px 10px 0; padding:12px 14px; font-size:12.5px; color:var(--verde-cl); line-height:1.5; margin-bottom:8px; }
+  .disclaimer{ font-size:11px; color:var(--cinza-cl); line-height:1.5; margin-top:14px; font-style:italic; }
+
+  .rank-row{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .rank-label{ width:130px; font-size:13px; flex-shrink:0; }
+  .rank-bar-wrap{ flex:1; height:22px; background:rgba(255,255,255,.08); border-radius:6px; overflow:hidden; }
+  .rank-bar{ height:100%; border-radius:6px; transition:width .5s ease; min-width:2px; }
+  .rank-pct{ width:42px; text-align:right; font-size:13px; font-weight:600; flex-shrink:0; }
+  .rank-total{ font-size:13px; color:var(--verde-cl); margin:6px 0 20px; }
+  .surprise{ background:var(--verde-med); color:var(--verde-esc); border-radius:12px; padding:14px 16px; font-size:14px; line-height:1.45; margin-bottom:20px; font-weight:600; }
+  .live-tag{ display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--verde-med); margin-bottom:14px; }
+  .live-tag .dot{ animation:pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
+
+  .footer{ font-size:10.5px; color:var(--cinza-cl); line-height:1.5; padding:14px 22px 18px; border-top:1px solid rgba(255,255,255,.1); }
+  .footer .tagline{ color:var(--verde-med); font-style:italic; display:block; margin-bottom:4px; }
+  .setup-warn{ background:var(--amber-past); color:#4A3008; font-size:11.5px; padding:10px 22px; line-height:1.45; text-align:center; }
+  .setup-warn b{ color:#633806; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <div class="setup-warn hidden" id="setupWarn">
+    <b>Firebase não configurado.</b> Cole sua config no topo do &lt;script&gt; (bloco FIREBASE_CONFIG). O quiz funciona, mas o ranking não será salvo entre dispositivos.
+  </div>
+
+  <div class="topbar">
+    <div class="selo">gF</div>
+    <div class="brand">
+      <b>Clima na Conta</b>
+      <span>gFIS · Finanças e Investimentos Sustentáveis · UFRJ</span>
+    </div>
+    <div class="conn"><span class="dot" id="connDot"></span><span id="connTxt">conectando…</span></div>
+  </div>
+  <div class="progress-wrap"><div class="progress" id="progress"></div></div>
+
+  <div class="screen" id="screen-start">
+    <h1>Descubra seu <span class="accent">perfil de risco climático</span></h1>
+    <p class="lead">8 perguntas rápidas. No final, você vê o quanto a crise climática pode pesar na sua vida — e no seu bolso.</p>
+    <p class="meta">Anônimo. Leva menos de 2 minutos.</p>
+    <div class="btn-row"><button class="btn btn-primary" onclick="start()">Começar</button></div>
+  </div>
+
+  <div class="screen hidden" id="screen-q">
+    <div class="qcount" id="qcount">Pergunta 1 de 8</div>
+    <div class="qtext" id="qtext"></div>
+    <div class="opts" id="opts"></div>
+    <div class="qhint" id="qhint"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="backBtn" onclick="back()" style="flex:0 0 90px;">Voltar</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="next()" disabled style="opacity:.5;">Próxima</button>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="screen-result">
+    <span class="result-badge" id="resBadge"></span>
+    <div class="result-title" id="resTitle"></div>
+    <div class="result-score" id="resScore"></div>
+    <div class="result-msg" id="resMsg"></div>
+    <div class="result-fact" id="resFact"></div>
+    <div class="disclaimer">Este quiz é educativo e não substitui uma análise técnica de risco.</div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="showRanking()">Ver ranking ao vivo</button>
+      <button class="btn btn-primary" onclick="restart()">Refazer</button>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="screen-rank">
+    <span class="live-tag"><span class="dot on"></span>AO VIVO</span>
+    <h1 style="font-size:22px;margin-bottom:16px;">Ranking</h1>
+    <div id="rankBars"></div>
+    <div class="rank-total" id="rankTotal"></div>
+    <div class="surprise" id="surprise"></div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="restart()">Fazer o quiz</button></div>
+  </div>
+
+  <div class="footer">
+    <span class="tagline">Alavancando hoje as finanças do futuro</span>
+    gfis.facc.ufrj.br · @gfis.ufrj · gfis.ufrj@gmail.com
+  </div>
+</div>
+
+<script type="module">
+// =====================================================================
+//  CONFIGURAÇÃO DO FIREBASE  ← COLE AQUI A CONFIG DO SEU PROJETO
+// ---------------------------------------------------------------------
+//  Onde achar: console.firebase.google.com → seu projeto →
+//  ícone de engrenagem (Configurações do projeto) → role até "Seus apps"
+//  → registre um app Web (</>) → copie o objeto firebaseConfig.
+//  Substitua o objeto abaixo inteiro por ele.
+// =====================================================================
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyB7VF38slbYvKQoxRGiCnCrzPBcNabvOHI",
+  authDomain: "gfis-no-riw.firebaseapp.com",
+  databaseURL: "https://gfis-no-riw-default-rtdb.firebaseio.com",
+  projectId: "gfis-no-riw",
+  storageBucket: "gfis-no-riw.firebasestorage.app",
+  messagingSenderId: "610185643375",
+  appId: "1:610185643375:web:318a264505ecaf3ad5549a"
+};
+// =====================================================================
+
+const PERGUNTAS = [
+  { q:"Sua casa ou seu bairro já foi afetado por enchente, alagamento, deslizamento ou falta d'água nos últimos 5 anos?",
+    opts:[["Nunca",0],["Uma vez",1],["Algumas vezes",2],["Com frequência",3]],
+    hint:"Entre 2010 e 2022 foram registrados 792 desastres naturais ligados ao clima só no estado do Rio. (Paiva et al., 2025, via IRI/PUC-Rio)" },
+  { q:"Quanto a conta de luz pesa hoje no seu orçamento mensal?",
+    opts:[["Quase não sinto",0],["Pesa um pouco",1],["Pesa bastante",2],["É um dos meus maiores gastos",3]], hint:"" },
+  { q:"Você (ou sua empresa) tem alguma fonte de energia própria ou renovável, como energia solar?",
+    opts:[["Sim, já uso",0],["Estou contratando/instalando",1],["Penso em ter, mas não busquei",2],["Nunca considerei",3]],
+    hint:"A solar já é a 2ª maior fonte da matriz elétrica brasileira, com ~24,5% e 64 GW acumulados. (ABSOLAR, 2026)" },
+  { q:"O setor em que você trabalha ou investe depende diretamente do clima (agro, energia, turismo, seguros, imóveis, construção)?",
+    opts:[["Não depende",0],["Depende um pouco",1],["Depende bastante",2],["Depende totalmente",3]],
+    hint:"Só as enchentes do RS em 2024 geraram perdas de US$ 5 bilhões; o agro perdeu ~R$ 8,5 bi. (Aon; OMM, 2024)" },
+  { q:"Você tem seguro que cubra danos da natureza (enchente, vendaval, deslizamento) na sua casa, carro ou negócio?",
+    opts:[["Sim, com cobertura ampla",0],["Tenho seguro básico",1],["Não sei se cobre isso",2],["Não tenho seguro",3]], hint:"" },
+  { q:"Com que frequência você considera o impacto ambiental/climático nas suas decisões de compra ou investimento?",
+    opts:[["Sempre",0],["Às vezes",1],["Raramente",2],["Nunca",3]], hint:"" },
+  { q:"Você sabe o que significa ESG ou \"finanças sustentáveis\"?",
+    opts:[["Sim, conheço bem",0],["Já ouvi e entendo o básico",1],["Já ouvi, mas não sei o que é",2],["Nunca ouvi",3]],
+    hint:"O Brasil já acumula US$ 67,8 bi em títulos verdes, sociais e sustentáveis — o maior emissor da América Latina. (Climate Bonds, 2025)" },
+  { q:"Se um evento climático extremo atingisse sua região amanhã, quão preparado(a) você se sente financeiramente?",
+    opts:[["Muito preparado",0],["Razoavelmente",1],["Pouco preparado",2],["Nada preparado",3]],
+    hint:"O Brasil teve R$ 188,7 bi em prejuízos climáticos só em 2020–2023. (Agência Brasil, 2024)" },
+];
+
+const PERFIS = {
+  baixo:{ badge:"Baixo risco", title:"Baixo risco", color:"#185FA5", badgeBg:"#E6F1FB", badgeTxt:"#0C447C",
+    msg:"Você está em boa posição diante dos riscos climáticos. Suas escolhas de energia, seguro e consumo já reduzem sua exposição. O próximo passo é ampliar: o Brasil é o maior mercado de finanças sustentáveis da América Latina, com cada vez mais produtos verdes para quem quer ir além.",
+    fact:"Capital verde existe e cresce: US$ 67,8 bi em títulos verdes já emitidos no país." },
+  transicao:{ badge:"Em transição", title:"Em transição", color:"#1D9E75", badgeBg:"#E1F5EE", badgeTxt:"#0F6E56",
+    msg:"Você tem exposição moderada a riscos climáticos — e isso significa que há ganhos claros a capturar. Pequenas mudanças (energia própria, revisão de seguro, decisões de compra mais conscientes) reduzem custo e risco ao mesmo tempo. A transição climática não é só sobre o planeta: é sobre o seu bolso.",
+    fact:"A energia solar já responde por ~24,5% da matriz elétrica brasileira e segue crescendo." },
+  alta:{ badge:"Alta vulnerabilidade", title:"Alta vulnerabilidade", color:"#D85A30", badgeBg:"#FAECE7", badgeTxt:"#993C1D",
+    msg:"Sua exposição a riscos climáticos é alta. A boa notícia: existem caminhos concretos de adaptação e proteção financeira. Diversificar fontes de energia, garantir cobertura de seguro adequada e entender finanças sustentáveis são passos que protegem você e seu patrimônio. Converse com a gente aqui no estande.",
+    fact:"O Brasil teve R$ 188,7 bi em prejuízos climáticos só em 2020–2023 — 80% de toda a década anterior." },
+};
+
+// ---------- estado ----------
+let idx=0, respostas=new Array(PERGUNTAS.length).fill(null);
+let liveStats={ baixo:0, transicao:0, alta:0, nuncaSolar:0, total:0 };
+let db=null, ref=null, fb=null, configurado=false;
+const $=id=>document.getElementById(id);
+
+// ---------- Firebase (carregado dinamicamente; degrada se falhar) ----------
+configurado = !Object.values(FIREBASE_CONFIG).some(v => v==="COLE_AQUI");
+if(!configurado){ $("setupWarn").classList.remove("hidden"); }
+
+async function initFirebase(){
+  if(!configurado){ setConn(false,"offline (sem config)"); return; }
+  try{
+    const appMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const dbMod  = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
+    fb = dbMod;
+    const app = appMod.initializeApp(FIREBASE_CONFIG);
+    db = dbMod.getDatabase(app);
+    ref = dbMod.ref(db, "clima_na_conta/stats");
+    // escuta o ranking em tempo real
+    dbMod.onValue(ref, (snap)=>{
+      const v = snap.val() || {};
+      liveStats = { baixo:v.baixo||0, transicao:v.transicao||0, alta:v.alta||0, nuncaSolar:v.nuncaSolar||0, total:v.total||0 };
+      setConn(true,"ao vivo");
+      if(!$("screen-rank").classList.contains("hidden")) paintRanking();
+    }, (err)=>{ setConn(false,"erro de conexão"); console.error(err); });
+  }catch(e){
+    setConn(false,"offline"); console.error("Falha ao iniciar Firebase:", e);
+  }
+}
+function setConn(on,txt){
+  const d=$("connDot"); d.className="dot "+(on?"on":"off"); $("connTxt").textContent=txt;
+}
+async function registrarPerfil(perfil, nuncaSolar){
+  // fallback local sempre incrementa, pra UX nunca travar
+  liveStats[perfil]++; liveStats.total++; if(nuncaSolar) liveStats.nuncaSolar++;
+  if(!configurado || !db) return;
+  try{
+    const updates={};
+    updates["clima_na_conta/stats/"+perfil] = fb.increment(1);
+    updates["clima_na_conta/stats/total"]   = fb.increment(1);
+    if(nuncaSolar) updates["clima_na_conta/stats/nuncaSolar"] = fb.increment(1);
+    await fb.update(fb.ref(db), updates);
+  }catch(e){ console.error("Falha ao salvar:", e); }
+}
+
+// ---------- fluxo ----------
+function start(){ idx=0; respostas.fill(null); show("screen-q"); renderQ(); }
+function show(id){ ["screen-start","screen-q","screen-result","screen-rank"].forEach(s=>$(s).classList.add("hidden")); $(id).classList.remove("hidden"); }
+
+function renderQ(){
+  const p=PERGUNTAS[idx];
+  $("qcount").textContent=`Pergunta ${idx+1} de ${PERGUNTAS.length}`;
+  $("qtext").textContent=p.q;
+  $("qhint").textContent=p.hint; $("qhint").style.display=p.hint?"block":"none";
+  $("progress").style.width=`${(idx/PERGUNTAS.length)*100}%`;
+  const opts=$("opts"); opts.innerHTML="";
+  p.opts.forEach((o,i)=>{
+    const b=document.createElement("button");
+    b.className="opt"+(respostas[idx]===i?" sel":""); b.textContent=o[0];
+    b.onclick=()=>{ respostas[idx]=i; renderQ(); };
+    opts.appendChild(b);
+  });
+  $("backBtn").style.visibility=idx===0?"hidden":"visible";
+  const nb=$("nextBtn"), answered=respostas[idx]!==null;
+  nb.disabled=!answered; nb.style.opacity=answered?"1":".5";
+  nb.textContent=idx===PERGUNTAS.length-1?"Ver meu perfil":"Próxima";
+}
+function next(){ if(respostas[idx]===null) return; if(idx<PERGUNTAS.length-1){ idx++; renderQ(); } else { finish(); } }
+function back(){ if(idx>0){ idx--; renderQ(); } }
+
+function finish(){
+  $("progress").style.width="100%";
+  let total=0; respostas.forEach((r,i)=> total += PERGUNTAS[i].opts[r][1]);
+  const perfil = total<=8?"baixo": total<=16?"transicao":"alta";
+  const nuncaSolar = respostas[2]===3;
+  registrarPerfil(perfil, nuncaSolar);
+  const P=PERFIS[perfil];
+  $("resBadge").textContent=P.badge; $("resBadge").style.background=P.badgeBg; $("resBadge").style.color=P.badgeTxt;
+  $("resTitle").textContent=P.title; $("resTitle").style.color=P.color;
+  $("resScore").textContent=`Sua pontuação: ${total} de 24`;
+  $("resMsg").textContent=P.msg; $("resFact").textContent=P.fact;
+  show("screen-result");
+}
+
+function paintRanking(){
+  const cfg=[["baixo","Baixo risco","#185FA5"],["transicao","Em transição","#1D9E75"],["alta","Alta vulnerab.","#D85A30"]];
+  const wrap=$("rankBars"); wrap.innerHTML="";
+  cfg.forEach(c=>{
+    const n=liveStats[c[0]], pct=liveStats.total?Math.round(n/liveStats.total*100):0;
+    const row=document.createElement("div"); row.className="rank-row";
+    row.innerHTML=`<div class="rank-label">${c[1]}</div>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%;background:${c[2]};"></div></div>
+      <div class="rank-pct">${pct}%</div>`;
+    wrap.appendChild(row);
+  });
+  $("rankTotal").textContent=`${liveStats.total} ${liveStats.total===1?"participante":"participantes"}`;
+  const pctSolar=liveStats.total?Math.round(liveStats.nuncaSolar/liveStats.total*100):0;
+  $("surprise").textContent=`${pctSolar}% dos participantes nunca consideraram ter energia própria.`;
+}
+function showRanking(){ paintRanking(); show("screen-rank"); }
+function restart(){ show("screen-start"); $("progress").style.width="0%"; }
+
+// expõe pro onclick do HTML
+window.start=start; window.next=next; window.back=back;
+window.showRanking=showRanking; window.restart=restart;
+
+initFirebase();
+</script>
+</body>
+</html>
